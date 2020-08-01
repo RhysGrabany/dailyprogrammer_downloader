@@ -42,7 +42,7 @@ class User:
 
 
 import configparser as cfg
-import requests, json, praw, pandas, argparse
+import requests, json, praw, pandas, argparse, random, os
 
 # Parsing the sensitive info from the sensitive.ini file
 def sensitive_info(user):
@@ -74,6 +74,17 @@ def submission_info(sub, num, diff):
 def print_output(text):
     print(text)
 
+def create_dir():
+    if not os.path.isdir("challenges/"):
+        os.makedirs("challenges/")
+
+def save_sub(num, diff, text):
+    create_dir()
+    path = str(num)+diff+".txt"
+
+    with open("challenges/"+path, 'w') as f:
+        f.write(text)
+        
 
 
 
@@ -88,6 +99,9 @@ def main():
     num = parsed.number
     diff = parsed.difficulty
 
+    if num in ['random', 'rand']:
+        num = random.randint(1, 300)
+
     # Creating the User object
     user = User()
     sensitive_info(user)
@@ -99,8 +113,12 @@ def main():
     # Get the submission from the subreddit search using the id and difficulty
     submission = submission_info(sub, num, diff)
 
-    # Make a prettier output for the user
+    # Output for the user
     print_output(submission.selftext)
+
+    save_sub(num, diff, submission.selftext)
+
+
 
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+# User class that holds the sensitive info 
 class User:
     ###############
     # CONSTRUCTOR #
@@ -40,15 +41,10 @@ class User:
         self.m_Request = request
 
 
-
-
-
-
 import configparser as cfg
 import requests, json, praw, pandas, argparse
 
-
-
+# Parsing the sensitive info from the sensitive.ini file
 def sensitive_info(user):
     conf = cfg.ConfigParser()
     conf.read("sensitive.ini")
@@ -58,6 +54,7 @@ def sensitive_info(user):
     user.setAppID(conf["Secret Key"]["app_id"])
     user.setSecret(conf["Secret Key"]["secret"])
 
+# Creating a token for the user
 def request_token(user):
     reddit = praw.Reddit(client_id=user.getAppID(), \
                             client_secret=user.getSecret(), \
@@ -67,33 +64,45 @@ def request_token(user):
     user.setRequest(reddit)
 
 def submission_info(sub, num, diff):
-    search = sub.search("#" + str(num) + " " + diff)
+    search = sub.search("#" + str(num) + " " + diff, limit=1)
 
-    print(search)
+    # Can't just return the search cause it is an object, so this kinda bypasses it
+    for sub in search:
+        return sub
 
-    '''for submission in search:
-        print(submission.title, submission.id)
-        print(submission.selftext)
-        break'''
+# This method aims to print the text to the console
+def print_output(text):
+    print(text)
+
 
 
 
 def main():
+    # Arguments that can be passed to the program
     arg = argparse.ArgumentParser()
     arg.add_argument("-n", "--number", required=True, help="Input a number for a challenge")
     arg.add_argument("-d", "--difficulty", required=True, help="Input a difficulty (easy/intermediate/hard)")
 
-
+    # Parse the arguments
     parsed = arg.parse_args()
     num = parsed.number
     diff = parsed.difficulty
 
+    # Creating the User object
     user = User()
     sensitive_info(user)
     request_token(user)
+
+    # Change the subreddit to dailyprogrammer
     sub = user.getRequest().subreddit('dailyprogrammer')
 
-    submission_info(sub, num, diff)
+    # Get the submission from the subreddit search using the id and difficulty
+    submission = submission_info(sub, num, diff)
+
+    # Make a prettier output for the user
+    print_output(submission.selftext)
+
+
 
 
 
